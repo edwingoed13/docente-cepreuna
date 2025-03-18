@@ -1,8 +1,9 @@
 const express = require('express');
+const session = require('express-session'); // Importar express-session
 const app = express();
 const path = require('path');
 const fs = require('fs');
-const cors = require('cors'); // Para restringir el acceso con CORS
+const cors = require('cors');
 
 // Middleware para permitir solicitudes JSON y servir archivos estáticos
 app.use(express.json());
@@ -11,28 +12,34 @@ app.use(express.static('public'));
 // Configura CORS para permitir cualquier origen temporalmente
 app.use(cors());
 
-// Almacenar el CAPTCHA generado en memoria (mejorado para múltiples usuarios)
-let captchaStore = {};
+// Configurar express-session
+app.use(
+    session({
+        secret: 'tu_secreto_seguro', // Cambia esto por una cadena secreta segura
+        resave: false,
+        saveUninitialized: true,
+        cookie: { secure: false }, // Cambia a true si usas HTTPS
+    })
+);
 
 // Endpoint para generar un CAPTCHA
 app.get('/api/generar-captcha', (req, res) => {
     const captcha = Math.floor(Math.random() * 9000) + 1000; // Número aleatorio de 4 dígitos
-    const captchaId = Date.now().toString(); // ID único para el CAPTCHA
-    captchaStore[captchaId] = captcha; // Almacenar el CAPTCHA con un ID único
-    res.json({ captcha, captchaId }); // Enviar el CAPTCHA y su ID al cliente
+    req.session.captcha = captcha; // Almacenar el CAPTCHA en la sesión del usuario
+    res.json({ captcha }); // Enviar el CAPTCHA al cliente
 });
 
 // Endpoint para consultar el estado
 app.post('/api/consultar', (req, res) => {
-    const { dni, captchaInput, captchaId } = req.body;
+    const { dni, captchaInput } = req.body;
 
     // Validar CAPTCHA
-    if (!captchaStore[captchaId] || captchaInput != captchaStore[captchaId]) {
+    if (!req.session.captcha || captchaInput != req.session.captcha) {
         return res.status(400).json({ error: 'CAPTCHA incorrecto' });
     }
 
     // Eliminar el CAPTCHA usado para evitar reutilización
-    delete captchaStore[captchaId];
+    delete req.session.captcha;
 
     // Cargar datos desde el archivo JSON
     try {
