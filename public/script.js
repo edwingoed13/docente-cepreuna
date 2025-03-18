@@ -3,11 +3,10 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 let captcha; // Variable para almacenar el CAPTCHA generado
-const API_URL = 'https://docente-cepreuna-production.up.railway.app'; // Cambia esto al dominio de tu proyecto en Railway
 
 // Función para generar un CAPTCHA desde el servidor
 function generarCaptcha() {
-    fetch(`${API_URL}/api/generar-captcha`)
+    fetch('/api/generar-captcha')
         .then(response => response.json())
         .then(data => {
             captcha = data.captcha; // Guardar el CAPTCHA generado
@@ -23,7 +22,7 @@ function consultarEstado() {
     const captchaInput = document.getElementById('captchaInput').value;
     const resultadoDiv = document.getElementById('resultado');
 
-    // Validar CAPTCHA en el frontend (opcional)
+    // Validar CAPTCHA en el frontend (opcional, para mejorar la experiencia del usuario)
     if (captchaInput != captcha) {
         alert('CAPTCHA incorrecto. Intenta de nuevo.');
         generarCaptcha(); // Generar un nuevo CAPTCHA
@@ -32,7 +31,7 @@ function consultarEstado() {
     }
 
     // Enviar solicitud al servidor
-    fetch(`${API_URL}/api/consultar`, {
+    fetch('/api/consultar', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -49,11 +48,15 @@ function consultarEstado() {
         return response.json();
     })
     .then(data => {
+        // Determinar la clase CSS para el estado (APTO o NO APTO)
         const estadoClass = data.estado === "Apto" ? "estado-apto" : "estado-no-apto";
+
+        // Determinar el mensaje adicional según el estado
         const mensajeAdicional = data.estado === "Apto" ?
             "La asignación de carga horaria será paulatinamente mientras los estudiantes se vayan inscribiendo al nuevo ciclo marzo-julio 2025 del CEPREUNA. No todos los APTOS tendrán carga horaria, pero son elegibles para ello." :
             "Gracias por su participación.";
 
+        // Mostrar los resultados con los estilos aplicados
         resultadoDiv.innerHTML = `
             <div class="resultado">
                 <p class="nombre">Nombre: <strong>${data.nombre}</strong></p>
