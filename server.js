@@ -2,13 +2,13 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const fs = require('fs');
-const cors = require('cors'); // Para restringir el acceso con CORS
+const cors = require('cors'); // Para permitir acceso desde diferentes dominios
 
 // Middleware para permitir solicitudes JSON y servir archivos estáticos
 app.use(express.json());
 app.use(express.static('public'));
 
-// Configura CORS para permitir cualquier origen temporalmente
+// Configura CORS para permitir solicitudes desde cualquier origen
 app.use(cors());
 
 // Almacenar el CAPTCHA generado (en memoria, para simplificar)
@@ -25,7 +25,7 @@ app.post('/api/consultar', (req, res) => {
     const { dni, captchaInput } = req.body;
 
     // Validar CAPTCHA
-    if (captchaInput != captchaServer) {
+    if (parseInt(captchaInput) !== captchaServer) {
         return res.status(400).json({ error: 'CAPTCHA incorrecto' });
     }
 
