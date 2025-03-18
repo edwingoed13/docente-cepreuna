@@ -1,18 +1,17 @@
+// server.js
 const express = require('express');
-const session = require('express-session'); // Importar express-session
+const session = require('express-session');
 const app = express();
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 
-// Middleware para permitir solicitudes JSON y servir archivos estáticos
+// Middleware
 app.use(express.json());
 app.use(express.static('public'));
-
-// Configura CORS para permitir cualquier origen temporalmente
 app.use(cors());
 
-// Configurar express-session
+// Configuración de sesión
 app.use(
     session({
         secret: 'tu_secreto_seguro', // Cambia esto por una cadena secreta segura
@@ -22,14 +21,14 @@ app.use(
     })
 );
 
-// Endpoint para generar un CAPTCHA
+// Ruta para generar CAPTCHA
 app.get('/api/generar-captcha', (req, res) => {
     const captcha = Math.floor(Math.random() * 9000) + 1000; // Número aleatorio de 4 dígitos
     req.session.captcha = captcha; // Almacenar el CAPTCHA en la sesión del usuario
     res.json({ captcha }); // Enviar el CAPTCHA al cliente
 });
 
-// Endpoint para consultar el estado
+// Ruta para consultar el estado
 app.post('/api/consultar', (req, res) => {
     const { dni, captchaInput } = req.body;
 

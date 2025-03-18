@@ -1,15 +1,16 @@
+// script.js
 document.addEventListener('DOMContentLoaded', function () {
     generarCaptcha(); // Generar el CAPTCHA al cargar la página
 });
 
-let captchaData = { captcha: null, captchaId: null }; // Almacenar el CAPTCHA y su ID
+let captchaData = { captcha: null }; // Almacenar el CAPTCHA
 
 // Función para generar un CAPTCHA desde el servidor
 function generarCaptcha() {
     fetch('/api/generar-captcha')
         .then(response => response.json())
         .then(data => {
-            captchaData = data; // Guardar el CAPTCHA y su ID
+            captchaData.captcha = data.captcha; // Guardar el CAPTCHA generado
             document.getElementById('captchaText').innerText = data.captcha; // Mostrar el CAPTCHA en el HTML
         })
         .catch(error => {
@@ -44,7 +45,6 @@ function consultarEstado() {
         body: JSON.stringify({
             dni: dni,
             captchaInput: captchaInput,
-            captchaId: captchaData.captchaId, // Enviar el ID del CAPTCHA
         }),
     })
     .then(response => {
