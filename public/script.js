@@ -1,21 +1,13 @@
-// script.js
 document.addEventListener('DOMContentLoaded', function () {
     generarCaptcha(); // Generar el CAPTCHA al cargar la página
 });
 
-let captchaData = { captcha: null }; // Almacenar el CAPTCHA
+let captcha; // Variable para almacenar el CAPTCHA generado
 
-// Función para generar un CAPTCHA desde el servidor
+// Función para generar un CAPTCHA
 function generarCaptcha() {
-    fetch('/api/generar-captcha')
-        .then(response => response.json())
-        .then(data => {
-            captchaData.captcha = data.captcha; // Guardar el CAPTCHA generado
-            document.getElementById('captchaText').innerText = data.captcha; // Mostrar el CAPTCHA en el HTML
-        })
-        .catch(error => {
-            console.error('Error al generar el CAPTCHA:', error);
-        });
+    captcha = Math.floor(Math.random() * 9000) + 1000; // Número aleatorio de 4 dígitos
+    document.getElementById('captchaText').innerText = captcha; // Mostrar el CAPTCHA en el HTML
 }
 
 function consultarEstado() {
@@ -28,8 +20,8 @@ function consultarEstado() {
         return;
     }
 
-    // Validar CAPTCHA en el frontend (opcional, para mejorar la experiencia del usuario)
-    if (captchaInput != captchaData.captcha) {
+    // Validar CAPTCHA en el frontend
+    if (captchaInput != captcha) {
         alert('CAPTCHA incorrecto. Intenta de nuevo.');
         generarCaptcha(); // Generar un nuevo CAPTCHA
         document.getElementById('captchaInput').value = ''; // Limpiar el campo de entrada
@@ -44,7 +36,7 @@ function consultarEstado() {
         },
         body: JSON.stringify({
             dni: dni,
-            captchaInput: captchaInput,
+            captchaInput: captchaInput, // Enviar el CAPTCHA ingresado por el usuario
         }),
     })
     .then(response => {
