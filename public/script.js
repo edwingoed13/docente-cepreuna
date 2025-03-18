@@ -2,15 +2,15 @@ document.addEventListener('DOMContentLoaded', function () {
     generarCaptcha(); // Generar el CAPTCHA al cargar la página
 });
 
-let captcha; // Variable para almacenar el CAPTCHA generado
+let captchaData = { captcha: null, captchaId: null }; // Almacenar el CAPTCHA y su ID
 
 // Función para generar un CAPTCHA desde el servidor
 function generarCaptcha() {
     fetch('/api/generar-captcha')
         .then(response => response.json())
         .then(data => {
-            captcha = data.captcha; // Guardar el CAPTCHA generado
-            document.getElementById('captchaText').innerText = captcha; // Mostrar el CAPTCHA en el HTML
+            captchaData = data; // Guardar el CAPTCHA y su ID
+            document.getElementById('captchaText').innerText = data.captcha; // Mostrar el CAPTCHA en el HTML
         })
         .catch(error => {
             console.error('Error al generar el CAPTCHA:', error);
@@ -18,12 +18,17 @@ function generarCaptcha() {
 }
 
 function consultarEstado() {
-    const dni = document.getElementById('dni').value;
-    const captchaInput = document.getElementById('captchaInput').value;
+    const dni = document.getElementById('dni')?.value;
+    const captchaInput = document.getElementById('captchaInput')?.value;
     const resultadoDiv = document.getElementById('resultado');
 
+    if (!dni || !captchaInput) {
+        alert('Por favor, completa todos los campos.');
+        return;
+    }
+
     // Validar CAPTCHA en el frontend (opcional, para mejorar la experiencia del usuario)
-    if (captchaInput != captcha) {
+    if (captchaInput != captchaData.captcha) {
         alert('CAPTCHA incorrecto. Intenta de nuevo.');
         generarCaptcha(); // Generar un nuevo CAPTCHA
         document.getElementById('captchaInput').value = ''; // Limpiar el campo de entrada
@@ -38,7 +43,8 @@ function consultarEstado() {
         },
         body: JSON.stringify({
             dni: dni,
-            captchaInput: captchaInput, // Enviar el CAPTCHA ingresado por el usuario
+            captchaInput: captchaInput,
+            captchaId: captchaData.captchaId, // Enviar el ID del CAPTCHA
         }),
     })
     .then(response => {

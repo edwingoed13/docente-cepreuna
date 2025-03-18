@@ -11,23 +11,28 @@ app.use(express.static('public'));
 // Configura CORS para permitir cualquier origen temporalmente
 app.use(cors());
 
-// Almacenar el CAPTCHA generado (en memoria, para simplificar)
-let captchaServer = null;
+// Almacenar el CAPTCHA generado en memoria (mejorado para múltiples usuarios)
+let captchaStore = {};
 
 // Endpoint para generar un CAPTCHA
 app.get('/api/generar-captcha', (req, res) => {
-    captchaServer = Math.floor(Math.random() * 9000) + 1000; // Número aleatorio de 4 dígitos
-    res.json({ captcha: captchaServer });
+    const captcha = Math.floor(Math.random() * 9000) + 1000; // Número aleatorio de 4 dígitos
+    const captchaId = Date.now().toString(); // ID único para el CAPTCHA
+    captchaStore[captchaId] = captcha; // Almacenar el CAPTCHA con un ID único
+    res.json({ captcha, captchaId }); // Enviar el CAPTCHA y su ID al cliente
 });
 
 // Endpoint para consultar el estado
 app.post('/api/consultar', (req, res) => {
-    const { dni, captchaInput } = req.body;
+    const { dni, captchaInput, captchaId } = req.body;
 
     // Validar CAPTCHA
-    if (captchaInput != captchaServer) {
+    if (!captchaStore[captchaId] || captchaInput != captchaStore[captchaId]) {
         return res.status(400).json({ error: 'CAPTCHA incorrecto' });
     }
+
+    // Eliminar el CAPTCHA usado para evitar reutilización
+    delete captchaStore[captchaId];
 
     // Cargar datos desde el archivo JSON
     try {
